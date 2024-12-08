@@ -1,52 +1,55 @@
 import { create } from "zustand";
-import SockJS from "sockjs-client";
-import { Client, Stomp } from "@stomp/stompjs";
+import { Socket, Channel } from "phoenix";
 
 interface WebSocketState {
-  client: Client | null;
-  connect: (url: string) => void;
+  socket: Socket | null;
+  channel: Channel | null;
+  content: string; // Добавляем состояние для текста
+  connect: (url: string, file: string) => void;
   disconnect: () => void;
-  sendMessage: (destination: string, message: string) => void;
-  subscribe: (destination: string, callback: (message: any) => void) => void;
+  sendMessage: (message: string) => void;
 }
 
 export const useWebSocketStore = create<WebSocketState>((set) => ({
-  client: null,
-  connect: (url: string) => {
-    const socket = new SockJS(url);
-    const client = Stomp.over(socket);
+  socket: null,
+  channel: null,
+  content: "",
 
-    client.connect({}, () => {
-      console.log("STOMP connection established");
-      set({ client });
-    }, (error: any) => {
-      console.error("STOMP error:", error);
+  connect: (url: string, file: string) => {
+    const socket = new Socket(url, { params: {} });
+    socket.connect();
+
+    const channel = socket.channel(`file:${file}`, {});
+
+    channel
+      .join()
+      .receive("ok", () => {
+        console.log(`Connected to file: ${file}`);
+        set({ channel });
+      })
+      .receive("error", (err) => console.error("Failed to join channel:", err));
+
+    // Подписка на обновления текста
+    channel.on("update", (payload) => {
+      set({ content: payload.content });
     });
 
-    client.onDisconnect = () => {
-      console.log("STOMP connection closed");
-      set({ client: null });
-    };
+    set({ socket });
   },
+
   disconnect: () => {
     set((state) => {
-      state.client?.deactivate({ force: true });
-      console.log("Disconnected");
-      return { client: null };
+      state.channel?.leave();
+      state.socket?.disconnect();
+      console.log("Disconnected from WebSocket");
+      return { socket: null, channel: null, content: "" };
     });
   },
-  sendMessage: (destination: string, message: string) => {
+
+  sendMessage: (message: string) => {
     set((state) => {
-      state.client?.publish({ destination, body: message });
-      return state;
+      state.channel?.push("edit", { content: message });
+      return { content: message };
     });
   },
-  subscribe: (destination: string, callback: (message: any) => void) => {
-    set((state) => {
-      state.client?.subscribe(destination, (message) => {
-        callback(message);
-      });
-      return state;
-    });
-  }
 }));

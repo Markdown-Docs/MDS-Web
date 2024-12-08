@@ -1,23 +1,9 @@
-import React, { useEffect } from 'react';
-import { useCompiledFieldStore } from '../../stores/compiledFieldSlice';
-import { useWebSocketStore } from '../../stores/webSocketSlice';
-
-const CompiledTextField: React.FC = () => {
-  const { text, setText } = useCompiledFieldStore();
-
-  const { client, subscribe } = useWebSocketStore();
-
-  useEffect(() => {
-    if (client) {
-      subscribe('/topic/text', (message) => setText(message.body));
-    }
-  }, [client]);
-
+export default function CompiledTextField({ value }: { value: string }) {
   return (
-    <div style={{ textAlign: 'left' }}>
-      <p>{text}</p>
+    <div
+      style={{ width: "100%", height: "100%", padding: "10px", fontSize: "16px", overflowY: "auto", whiteSpace: "pre-wrap" }}
+    >
+      {value}
     </div>
   );
-};
-
-export default CompiledTextField;
+}
