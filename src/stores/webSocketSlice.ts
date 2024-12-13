@@ -5,7 +5,7 @@ interface WebSocketState {
   socket: Socket | null;
   channel: Channel | null;
   content: string; // Добавляем состояние для текста
-  connect: (url: string, file: string) => void;
+  connect: (url: string, file_id: string) => void;
   disconnect: () => void;
   sendMessage: (message: string) => void;
 }
@@ -15,16 +15,16 @@ export const useWebSocketStore = create<WebSocketState>((set) => ({
   channel: null,
   content: "",
 
-  connect: (url: string, file: string) => {
+  connect: (url: string, file_id: string) => {
     const socket = new Socket(url, { params: {} });
     socket.connect();
 
-    const channel = socket.channel(`file:${file}`, {});
+    const channel = socket.channel(`file:${file_id}`, {});
 
     channel
       .join()
       .receive("ok", () => {
-        console.log(`Connected to file: ${file}`);
+        console.log(`Connected to file: ${file_id}`);
         set({ channel });
       })
       .receive("error", (err) => console.error("Failed to join channel:", err));
