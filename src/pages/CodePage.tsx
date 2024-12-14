@@ -6,9 +6,10 @@ import FileUploadModal from "../assets/components/FileUploadModal";
 import FileDownloadButton from "../assets/components/FileDownloadButton";
 import { useFileStore } from "../stores/fileStore";
 import CreateFileModal from "../assets/components/CreateFileModal";
+import RenderedPreview from "../components/Preview";
 
 export default function CodePage() {
-  const { connect, disconnect, sendMessage, content } = useWebSocketStore();
+  const { connect, disconnect, sendMessage, content, previewContent } = useWebSocketStore();
   const { fileId } = useFileStore();
   useEffect(() => {
     const fetchContent = async () => {
@@ -125,7 +126,7 @@ export default function CodePage() {
         </div>
         <div style={{ width: "4px", backgroundColor: "black", height: "100vh" }}></div>
         <div style={{ flex: 1, width: "50vw", height: "100vh", backgroundColor: "white", color: "black" }}>
-          <CompiledTextField value={content} />
+          <RenderedPreview content={previewContent} />
         </div>
 
       </div>
