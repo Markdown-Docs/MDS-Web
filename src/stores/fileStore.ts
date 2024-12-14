@@ -10,7 +10,7 @@ interface FileState {
 //TODO: если нет свободных id, то предложить создать новый файл
 
 export const useFileStore = create<FileState>((set) => ({
-  fileId: 2,
+  fileId: 1,
   increment: () => set((state) => ({ fileId: state.fileId + 1 })),
   decrement: () => set((state) => ({ fileId: Math.max(1, state.fileId - 1) })),
   setFileId: (id) => set({ fileId: id }),
